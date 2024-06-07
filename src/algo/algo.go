@@ -429,7 +429,7 @@ func debugV2(T []rune, pattern []rune, F []int32, lastIdx int, H []int16, C []in
 	}
 }
 
-func FuzzyMatchV2(caseSensitive bool, normalize bool, forward bool, input *util.Chars, pattern []rune, withPos bool, slab *util.Slab) (Result, *[]int) {
+func fuzzyMatchV2(caseSensitive bool, normalize bool, forward bool, input *util.Chars, pattern []rune, withPos bool, slab *util.Slab) (Result, *[]int) {
 	// Assume that pattern is given in lowercase if case-insensitive.
 	// First check if there's a match and calculate bonus for each position.
 	// If the input string is too long, consider finding the matching chars in
@@ -647,6 +647,16 @@ func FuzzyMatchV2(caseSensitive bool, normalize bool, forward bool, input *util.
 	// However finding the accurate offset requires backtracking, and we don't
 	// want to pay extra cost for the option that has lost its importance.
 	return Result{minIdx + j, minIdx + maxScorePos + 1, int(maxScore)}, pos
+}
+
+func FuzzyMatchV2(caseSensitive bool, normalize bool, forward bool, input *util.Chars, pattern []rune, withPos bool, slab *util.Slab) (Result, *[]int) {
+	str := input.ToString()
+	mod := PinyinMod(str)
+	if mod == "" {
+		return fuzzyMatchV2(caseSensitive, normalize, forward, input, pattern, withPos, slab)
+	}
+	input_mod := util.RunesToChars([]rune(str + mod))
+	return fuzzyMatchV2(caseSensitive, normalize, forward, &input_mod, pattern, withPos, slab)
 }
 
 // Implement the same sorting criteria as V2
